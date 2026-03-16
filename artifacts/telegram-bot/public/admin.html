@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jute Bingo Admin Panel</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #0f1923; color: #e0e6ed; min-height: 100vh; }
+
+    /* Login */
+    #loginPage { display: flex; justify-content: center; align-items: center; height: 100vh; }
+    .login-box { background: #1a2535; border-radius: 12px; padding: 40px; width: 360px; text-align: center; }
+    .login-box h1 { color: #f5a623; font-size: 24px; margin-bottom: 8px; }
+    .login-box p { color: #8a9bb0; margin-bottom: 28px; font-size: 14px; }
+    .login-box input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #2c3e55; background: #0f1923; color: #e0e6ed; margin-bottom: 14px; font-size: 15px; }
+    .login-box button { width: 100%; padding: 13px; background: #f5a623; border: none; border-radius: 8px; color: #0f1923; font-weight: bold; font-size: 16px; cursor: pointer; }
+    .login-box button:hover { background: #e09520; }
+    #loginError { color: #e74c3c; margin-top: 12px; font-size: 14px; display: none; }
+
+    /* Dashboard */
+    #dashboard { display: none; }
+    .sidebar { position: fixed; top: 0; left: 0; width: 220px; height: 100vh; background: #1a2535; padding: 20px 0; z-index: 100; }
+    .sidebar-logo { text-align: center; padding: 0 20px 20px; border-bottom: 1px solid #2c3e55; }
+    .sidebar-logo h2 { color: #f5a623; font-size: 18px; }
+    .sidebar-logo p { color: #8a9bb0; font-size: 11px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 13px 20px; cursor: pointer; color: #8a9bb0; font-size: 14px; transition: all 0.2s; }
+    .nav-item:hover, .nav-item.active { background: #243447; color: #f5a623; border-left: 3px solid #f5a623; }
+    .nav-item .icon { font-size: 18px; width: 22px; text-align: center; }
+    .logout-btn { position: absolute; bottom: 20px; left: 0; right: 0; padding: 0 20px; }
+    .logout-btn button { width: 100%; padding: 10px; background: #c0392b; border: none; border-radius: 8px; color: white; cursor: pointer; font-size: 14px; }
+
+    .main-content { margin-left: 220px; padding: 24px; min-height: 100vh; }
+    .page-header { margin-bottom: 24px; }
+    .page-header h2 { font-size: 22px; color: #f5a623; }
+    .page-header p { color: #8a9bb0; font-size: 13px; margin-top: 4px; }
+
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* Stats */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 28px; }
+    .stat-card { background: #1a2535; border-radius: 10px; padding: 20px; }
+    .stat-card .label { color: #8a9bb0; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+    .stat-card .value { font-size: 28px; font-weight: bold; color: #f5a623; margin-top: 6px; }
+
+    /* Table */
+    .table-wrap { background: #1a2535; border-radius: 10px; overflow: hidden; }
+    .table-wrap table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .table-wrap th { background: #243447; padding: 12px 14px; text-align: left; color: #8a9bb0; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
+    .table-wrap td { padding: 11px 14px; border-bottom: 1px solid #1e2d3f; vertical-align: middle; }
+    .table-wrap tr:last-child td { border-bottom: none; }
+    .table-wrap tr:hover td { background: #1e2d3f; }
+
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .badge-green { background: #1a4a30; color: #2ecc71; }
+    .badge-red { background: #4a1a1a; color: #e74c3c; }
+    .badge-yellow { background: #4a3d1a; color: #f1c40f; }
+    .badge-blue { background: #1a2d4a; color: #3498db; }
+
+    .btn { padding: 6px 14px; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; }
+    .btn-green { background: #27ae60; color: white; }
+    .btn-red { background: #e74c3c; color: white; }
+    .btn-blue { background: #2980b9; color: white; }
+    .btn-orange { background: #f5a623; color: #0f1923; }
+    .btn:hover { opacity: 0.85; }
+    .btn-sm { padding: 4px 10px; font-size: 11px; }
+
+    /* Forms */
+    .form-card { background: #1a2535; border-radius: 10px; padding: 24px; margin-bottom: 20px; }
+    .form-card h3 { color: #f5a623; margin-bottom: 18px; font-size: 16px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { color: #8a9bb0; font-size: 12px; font-weight: 600; text-transform: uppercase; }
+    .form-group input, .form-group select { padding: 10px; border-radius: 7px; border: 1px solid #2c3e55; background: #0f1923; color: #e0e6ed; font-size: 14px; }
+    .form-group input:focus, .form-group select:focus { outline: none; border-color: #f5a623; }
+    .form-actions { margin-top: 18px; display: flex; gap: 10px; }
+
+    .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; display: none; }
+    .alert-success { background: #1a4a30; color: #2ecc71; border: 1px solid #27ae60; }
+    .alert-error { background: #4a1a1a; color: #e74c3c; border: 1px solid #c0392b; }
+
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 999; justify-content: center; align-items: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: #1a2535; border-radius: 12px; padding: 28px; width: 420px; max-width: 95vw; }
+    .modal h3 { color: #f5a623; margin-bottom: 16px; }
+    .modal .form-group { margin-bottom: 12px; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+
+    #toast { position: fixed; bottom: 24px; right: 24px; background: #27ae60; color: white; padding: 12px 20px; border-radius: 8px; font-size: 14px; display: none; z-index: 9999; }
+    #toast.error { background: #e74c3c; }
+
+    .loading { text-align: center; padding: 40px; color: #8a9bb0; }
+    .search-bar { margin-bottom: 16px; }
+    .search-bar input { width: 300px; padding: 9px 14px; border-radius: 8px; border: 1px solid #2c3e55; background: #0f1923; color: #e0e6ed; font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<!-- Login -->
+<div id="loginPage">
+  <div class="login-box">
+    <h1>🎱 Jute Bingo</h1>
+    <p>Admin Panel — Secure Login</p>
+    <input type="text" id="username" placeholder="Username" />
+    <input type="password" id="password" placeholder="Password" />
+    <button onclick="doLogin()">Sign In</button>
+    <div id="loginError">Invalid username or password</div>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div id="dashboard">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <h2>🎱 Jute Bingo</h2>
+      <p>Admin Panel</p>
+    </div>
+    <div class="nav-item active" onclick="showSection('overview')"><span class="icon">📊</span> Overview</div>
+    <div class="nav-item" onclick="showSection('users')"><span class="icon">👥</span> Users</div>
+    <div class="nav-item" onclick="showSection('transactions')"><span class="icon">💳</span> Transactions</div>
+    <div class="nav-item" onclick="showSection('withdrawals')"><span class="icon">💸</span> Withdrawals</div>
+    <div class="nav-item" onclick="showSection('payment-settings')"><span class="icon">⚙️</span> Payment Settings</div>
+    <div class="nav-item" onclick="showSection('game-settings')"><span class="icon">🎮</span> Game Settings</div>
+    <div class="logout-btn">
+      <button onclick="doLogout()">🚪 Logout</button>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div id="toast"></div>
+
+    <!-- Overview -->
+    <div id="section-overview" class="section active">
+      <div class="page-header"><h2>📊 Dashboard Overview</h2><p>Jute Bingo platform statistics</p></div>
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card"><div class="label">Total Users</div><div class="value" id="stat-users">—</div></div>
+        <div class="stat-card"><div class="label">Total Transactions</div><div class="value" id="stat-tx">—</div></div>
+        <div class="stat-card"><div class="label">Transaction Volume</div><div class="value" id="stat-vol">—</div></div>
+        <div class="stat-card"><div class="label">Pending Withdrawals</div><div class="value" id="stat-pw">—</div></div>
+        <div class="stat-card"><div class="label">Total User Balances</div><div class="value" id="stat-bal">—</div></div>
+      </div>
+    </div>
+
+    <!-- Users -->
+    <div id="section-users" class="section">
+      <div class="page-header"><h2>👥 Users</h2><p>Manage registered users</p></div>
+      <div class="search-bar"><input type="text" id="userSearch" placeholder="Search by username or phone..." oninput="filterUsers()" /></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Username</th><th>Phone</th><th>Telegram ID</th><th>Balance</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+          <tbody id="usersTable"><tr><td colspan="8" class="loading">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Transactions -->
+    <div id="section-transactions" class="section">
+      <div class="page-header"><h2>💳 Transactions</h2><p>All payment transactions</p></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>User</th><th>Type</th><th>Method</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
+          <tbody id="txTable"><tr><td colspan="7" class="loading">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Withdrawals -->
+    <div id="section-withdrawals" class="section">
+      <div class="page-header"><h2>💸 Withdrawal Requests</h2><p>Review and process withdrawal requests</p></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>User</th><th>Amount</th><th>Method</th><th>Account</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+          <tbody id="wTable"><tr><td colspan="8" class="loading">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Payment Settings -->
+    <div id="section-payment-settings" class="section">
+      <div class="page-header"><h2>⚙️ Payment Settings</h2><p>Configure Telebirr and CBE payment accounts</p></div>
+      <div class="alert alert-success" id="ps-success">Settings saved successfully!</div>
+      <div id="paymentSettingsForms"></div>
+    </div>
+
+    <!-- Game Settings -->
+    <div id="section-game-settings" class="section">
+      <div class="page-header"><h2>🎮 Game Settings</h2><p>Configure game limits and bonuses</p></div>
+      <div class="alert alert-success" id="gs-success">Settings saved!</div>
+      <div class="form-card">
+        <h3>Game Configuration</h3>
+        <div class="form-grid">
+          <div class="form-group"><label>Min Deposit Amount (ETB)</label><input type="number" id="gs-min-deposit" /></div>
+          <div class="form-group"><label>Min Withdrawal Amount (ETB)</label><input type="number" id="gs-min-withdraw" /></div>
+          <div class="form-group"><label>Welcome Bonus Amount (ETB)</label><input type="number" id="gs-bonus-amount" /></div>
+          <div class="form-group"><label>Max Bonus Users (0 = unlimited)</label><input type="number" id="gs-bonus-max" /></div>
+          <div class="form-group"><label>Welcome Bonus Enabled</label>
+            <select id="gs-bonus-enabled"><option value="true">Yes</option><option value="false">No</option></select>
+          </div>
+        </div>
+        <div class="form-actions"><button class="btn btn-orange" onclick="saveGameSettings()">💾 Save Game Settings</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Withdrawal Modal -->
+<div class="modal-overlay" id="wModal">
+  <div class="modal">
+    <h3>Process Withdrawal</h3>
+    <input type="hidden" id="w-id" />
+    <div class="form-group"><label>Decision</label>
+      <select id="w-status">
+        <option value="completed">✅ Approve (Completed)</option>
+        <option value="rejected">❌ Reject</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Transaction / Reference Number</label><input type="text" id="w-txn" placeholder="Optional" /></div>
+    <div class="form-group"><label>Admin Note</label><input type="text" id="w-note" placeholder="Optional note" /></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('wModal')" style="background:#2c3e55;color:#fff;">Cancel</button>
+      <button class="btn btn-orange" onclick="submitWithdrawal()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- Balance Modal -->
+<div class="modal-overlay" id="balModal">
+  <div class="modal">
+    <h3>Adjust User Balance</h3>
+    <input type="hidden" id="bal-uid" />
+    <p id="bal-user-info" style="color:#8a9bb0;font-size:13px;margin-bottom:14px;"></p>
+    <div class="form-group"><label>Amount (ETB) — use negative to deduct</label><input type="number" id="bal-amount" placeholder="e.g. 100 or -50" /></div>
+    <div class="form-group"><label>Note</label><input type="text" id="bal-note" placeholder="Reason for adjustment" /></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('balModal')" style="background:#2c3e55;color:#fff;">Cancel</button>
+      <button class="btn btn-orange" onclick="submitBalance()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let API_KEY = '';
+let allUsers = [];
+
+const BASE = window.location.origin;
+
+async function api(method, path, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY } };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(BASE + '/api/admin' + path, opts);
+  return r.json();
+}
+
+async function doLogin() {
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  const r = await fetch(BASE + '/api/admin/login', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password })
+  });
+  const data = await r.json();
+  if (data.success) {
+    API_KEY = data.apiKey;
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    loadStats();
+  } else {
+    document.getElementById('loginError').style.display = 'block';
+  }
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+function doLogout() {
+  API_KEY = '';
+  document.getElementById('loginPage').style.display = 'flex';
+  document.getElementById('dashboard').style.display = 'none';
+}
+
+function showSection(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('section-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (name === 'overview') loadStats();
+  if (name === 'users') loadUsers();
+  if (name === 'transactions') loadTx();
+  if (name === 'withdrawals') loadWithdrawals();
+  if (name === 'payment-settings') loadPaymentSettings();
+  if (name === 'game-settings') loadGameSettings();
+}
+
+function toast(msg, isErr) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = isErr ? 'error' : '';
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3000);
+}
+
+function fmt(n) { return parseFloat(n || 0).toLocaleString('en-ET', { minimumFractionDigits: 2 }); }
+function fmtDate(d) { return d ? new Date(d).toLocaleDateString('en-ET', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'; }
+
+async function loadStats() {
+  const d = await api('GET', '/stats');
+  if (!d.success) return;
+  document.getElementById('stat-users').textContent = d.data.users;
+  document.getElementById('stat-tx').textContent = d.data.transactions;
+  document.getElementById('stat-vol').textContent = fmt(d.data.volume) + ' ETB';
+  document.getElementById('stat-pw').textContent = d.data.pendingWithdrawals;
+  document.getElementById('stat-bal').textContent = fmt(d.data.totalBalance) + ' ETB';
+}
+
+async function loadUsers() {
+  const d = await api('GET', '/users');
+  allUsers = d.data || [];
+  renderUsers(allUsers);
+}
+
+function renderUsers(users) {
+  const tb = document.getElementById('usersTable');
+  if (!users.length) { tb.innerHTML = '<tr><td colspan="8" class="loading">No users found</td></tr>'; return; }
+  tb.innerHTML = users.map(u => `
+    <tr>
+      <td>${u.id}</td>
+      <td>${u.username || '—'}</td>
+      <td>${u.phone_number || '—'}</td>
+      <td>${u.telegram_id || '—'}</td>
+      <td>${fmt(u.balance)} ETB</td>
+      <td><span class="badge ${u.isBlocked ? 'badge-red' : 'badge-green'}">${u.isBlocked ? 'Blocked' : 'Active'}</span></td>
+      <td>${fmtDate(u.created_at)}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-blue btn-sm" onclick="openBalModal(${u.id},'${u.username || u.phone_number}')">💰 Balance</button>
+        <button class="btn btn-sm ${u.isBlocked ? 'btn-green' : 'btn-red'}" onclick="toggleBlock(${u.id},${u.isBlocked ? 0 : 1})" style="margin-left:4px;">${u.isBlocked ? '✅ Unblock' : '🚫 Block'}</button>
+      </td>
+    </tr>`).join('');
+}
+
+function filterUsers() {
+  const q = document.getElementById('userSearch').value.toLowerCase();
+  renderUsers(allUsers.filter(u => (u.username || '').toLowerCase().includes(q) || (u.phone_number || '').includes(q)));
+}
+
+async function toggleBlock(id, block) {
+  const reason = block ? prompt('Reason for blocking (optional):') || '' : '';
+  const d = await api('POST', `/users/${id}/block`, { isBlocked: block, reason });
+  if (d.success) { toast(d.message); loadUsers(); } else toast(d.message, true);
+}
+
+function openBalModal(uid, uname) {
+  document.getElementById('bal-uid').value = uid;
+  document.getElementById('bal-user-info').textContent = 'User: ' + uname;
+  document.getElementById('bal-amount').value = '';
+  document.getElementById('bal-note').value = '';
+  document.getElementById('balModal').classList.add('open');
+}
+
+async function submitBalance() {
+  const uid = document.getElementById('bal-uid').value;
+  const amount = document.getElementById('bal-amount').value;
+  const note = document.getElementById('bal-note').value;
+  if (!amount) return toast('Enter an amount', true);
+  const d = await api('POST', `/users/${uid}/balance`, { amount: parseFloat(amount), note });
+  if (d.success) { toast(d.message); closeModal('balModal'); loadUsers(); } else toast(d.message, true);
+}
+
+async function loadTx() {
+  const d = await api('GET', '/transactions');
+  const tb = document.getElementById('txTable');
+  const rows = d.data || [];
+  if (!rows.length) { tb.innerHTML = '<tr><td colspan="7" class="loading">No transactions</td></tr>'; return; }
+  tb.innerHTML = rows.map(t => `
+    <tr>
+      <td>${t.id}</td>
+      <td>${t.username || t.phone_number || 'User ' + t.user_id}</td>
+      <td>${t.transaction_type}</td>
+      <td>${t.payment_method}</td>
+      <td>${fmt(t.amount)} ETB</td>
+      <td><span class="badge ${t.status==='completed'?'badge-green':t.status==='pending'?'badge-yellow':'badge-red'}">${t.status}</span></td>
+      <td>${fmtDate(t.created_at)}</td>
+    </tr>`).join('');
+}
+
+async function loadWithdrawals() {
+  const d = await api('GET', '/withdrawals');
+  const tb = document.getElementById('wTable');
+  const rows = d.data || [];
+  if (!rows.length) { tb.innerHTML = '<tr><td colspan="8" class="loading">No withdrawals</td></tr>'; return; }
+  tb.innerHTML = rows.map(w => `
+    <tr>
+      <td>${w.id}</td>
+      <td>${w.username || w.phone_number || 'User '+w.user_id}<br><small style="color:#8a9bb0;">${w.telegram_id||''}</small></td>
+      <td>${fmt(w.amount)} ETB</td>
+      <td>${w.payment_method}</td>
+      <td>${w.account_number}<br><small style="color:#8a9bb0;">${w.account_name}</small></td>
+      <td><span class="badge ${w.status==='completed'?'badge-green':w.status==='pending'?'badge-yellow':'badge-red'}">${w.status}</span></td>
+      <td>${fmtDate(w.created_at)}</td>
+      <td>${w.status==='pending' ? `<button class="btn btn-orange btn-sm" onclick="openWModal(${w.id})">Process</button>` : '—'}</td>
+    </tr>`).join('');
+}
+
+function openWModal(id) {
+  document.getElementById('w-id').value = id;
+  document.getElementById('w-status').value = 'completed';
+  document.getElementById('w-txn').value = '';
+  document.getElementById('w-note').value = '';
+  document.getElementById('wModal').classList.add('open');
+}
+
+async function submitWithdrawal() {
+  const id = document.getElementById('w-id').value;
+  const status = document.getElementById('w-status').value;
+  const transactionNumber = document.getElementById('w-txn').value;
+  const adminNote = document.getElementById('w-note').value;
+  const d = await api('POST', `/withdrawals/${id}/process`, { status, transactionNumber, adminNote });
+  if (d.success) { toast(d.message); closeModal('wModal'); loadWithdrawals(); } else toast(d.message, true);
+}
+
+async function loadPaymentSettings() {
+  const d = await api('GET', '/payment-settings');
+  const settings = d.data || [];
+  const container = document.getElementById('paymentSettingsForms');
+  const methods = ['telebirr', 'cbe'];
+  container.innerHTML = methods.map(m => {
+    const s = settings.find(x => x.payment_method === m) || {};
+    return `
+    <div class="form-card">
+      <h3>${m === 'telebirr' ? '📱 Telebirr' : '🏦 CBE (Commercial Bank)'}</h3>
+      <div class="form-grid">
+        <div class="form-group"><label>Account Number</label><input type="text" id="ps-${m}-num" value="${s.account_number||''}" /></div>
+        <div class="form-group"><label>Account Name</label><input type="text" id="ps-${m}-name" value="${s.account_name||''}" /></div>
+        <div class="form-group"><label>Status</label>
+          <select id="ps-${m}-status">
+            <option value="active" ${s.status==='active'||!s.status?'selected':''}>✅ Active</option>
+            <option value="inactive" ${s.status==='inactive'?'selected':''}>❌ Inactive</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-actions"><button class="btn btn-orange" onclick="savePaymentSetting('${m}')">💾 Save ${m.toUpperCase()}</button></div>
+    </div>`;
+  }).join('');
+}
+
+async function savePaymentSetting(method) {
+  const d = await api('POST', '/payment-settings', {
+    payment_method: method,
+    account_number: document.getElementById(`ps-${method}-num`).value,
+    account_name: document.getElementById(`ps-${method}-name`).value,
+    status: document.getElementById(`ps-${method}-status`).value,
+  });
+  if (d.success) toast(d.message); else toast(d.message, true);
+}
+
+async function loadGameSettings() {
+  const d = await api('GET', '/game-settings');
+  const s = d.data || {};
+  document.getElementById('gs-min-deposit').value = s.min_deposit_amount || 0;
+  document.getElementById('gs-min-withdraw').value = s.min_withdrawal_amount || 0;
+  document.getElementById('gs-bonus-amount').value = s.welcome_bonus_amount || 0;
+  document.getElementById('gs-bonus-max').value = s.welcome_bonus_max_users || 0;
+  document.getElementById('gs-bonus-enabled').value = s.welcome_bonus_enabled ? 'true' : 'false';
+}
+
+async function saveGameSettings() {
+  const d = await api('POST', '/game-settings', {
+    min_deposit_amount: document.getElementById('gs-min-deposit').value,
+    min_withdrawal_amount: document.getElementById('gs-min-withdraw').value,
+    welcome_bonus_amount: document.getElementById('gs-bonus-amount').value,
+    welcome_bonus_max_users: document.getElementById('gs-bonus-max').value,
+    welcome_bonus_enabled: document.getElementById('gs-bonus-enabled').value === 'true',
+  });
+  if (d.success) toast(d.message); else toast(d.message, true);
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); }));
+</script>
+</body>
+</html>

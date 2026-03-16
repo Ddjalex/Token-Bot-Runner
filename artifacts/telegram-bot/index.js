@@ -109,11 +109,19 @@ const db = require("./config/db");
 
 // Import routes
 const indexRoutes = require("./routes/index");
+const adminRoutes = require("./routes/adminRoutes");
+
+// Serve admin panel HTML
+const path = require("path");
+app.get("/admin", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "admin.html"));
+});
 
 // Register routes
 app.use("/api", indexRoutes);
 app.use("/api/telegram", telegramRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use("/api/admin", adminRoutes);
 
 // Get user data from database by Telegram ID
 const getUserByTelegramId = async (telegramId) => {
@@ -400,7 +408,7 @@ bot.start(async (ctx) => {
     if (user) {
       // User already exists, send normal welcome message
       await safeReplyWithPhoto(ctx, { source: "./public/welcome.jpg" });
-      await safeReply(ctx, `Welcome to Feshta Bingo! Choose an option below.`, {
+      await safeReply(ctx, `Welcome to Jute Bingo! Choose an option below.`, {
         reply_markup: {
           inline_keyboard: [
             [
@@ -532,7 +540,7 @@ bot.on("callback_query", async (ctx) => {
     } else if (action === "instructions") {
       await ctx.answerCbQuery();
       const instructions = `
-📝 <b>How to Play Feshta Bingo</b>
+📝 <b>How to Play Jute Bingo</b>
 
 1️⃣ <b>Buy a Card:</b> Purchase a bingo card with numbers arranged in a 5x5 grid.
 
@@ -859,7 +867,7 @@ Available commands:
 • /contact_support - Get support contact information
 • /help - Show this help message
 
-Need further assistance? Contact support at support@Feshtabingo.com
+Need further assistance? Contact support at support@jutebingo.com
         `,
         { parse_mode: "HTML" }
       );
@@ -954,7 +962,7 @@ Need further assistance? Contact support at support@Feshtabingo.com
       await ctx.answerCbQuery();
       await safeReply(ctx, "Deposit process cancelled.");
       // Send the main menu again
-      await safeReply(ctx, "Welcome to Feshta Bingo! Choose an option below.", {
+      await safeReply(ctx, "Welcome to Jute Bingo! Choose an option below.", {
         reply_markup: {
           inline_keyboard: [
             [
@@ -1016,7 +1024,7 @@ Need further assistance? Contact support at support@Feshtabingo.com
       await ctx.answerCbQuery();
       await safeReply(ctx, "Withdrawal process cancelled.");
       // Send the main menu again
-      await safeReply(ctx, "Welcome to Feshta Bingo! Choose an option below.", {
+      await safeReply(ctx, "Welcome to Jute Bingo! Choose an option below.", {
         reply_markup: {
           inline_keyboard: [
             [
@@ -1554,7 +1562,7 @@ bot.command("instructions", async (ctx) => {
   }
 
   const instructions = `
-📝 <b>How to Play Feshta Bingo</b>
+📝 <b>How to Play Jute Bingo</b>
 
 1️⃣ <b>Buy a Card:</b> Purchase a bingo card with numbers arranged in a 5x5 grid.
 
@@ -1959,7 +1967,7 @@ Available commands:
 • /contact_support - Get support contact information
 • /help - Show this help message
 
-Need further assistance? Contact support at support@Feshtabingo.com
+Need further assistance? Contact support at support@jutebingo.com
     `,
     { parse_mode: "HTML" }
   );
@@ -2606,7 +2614,7 @@ console.log(targetUser)
   // Default response for other messages
   else {
     // Default response for non-command messages
-    await safeReply(ctx, "Welcome to Feshta Bingo! Choose an option below.", {
+    await safeReply(ctx, "Welcome to Jute Bingo! Choose an option below.", {
       reply_markup: {
         inline_keyboard: [
           [
@@ -2851,7 +2859,7 @@ bot.on("contact", async (ctx) => {
                   try {
                     await safeSendMessage(
                       telegramId,
-                      `🎉 Welcome to Feshta Bingo! You've received a welcome bonus of ${bonusAmount} ETB!`
+                      `🎉 Welcome to Jute Bingo! You've received a welcome bonus of ${bonusAmount} ETB!`
                     );
                   } catch (error) {
                     console.error(
@@ -2916,7 +2924,7 @@ bot.on("contact", async (ctx) => {
             // Send welcome message with main menu
             await safeReply(
               ctx,
-              "Welcome to Feshta Bingo! Choose an option below.",
+              "Welcome to Jute Bingo! Choose an option below.",
               {
                 reply_markup: {
                   inline_keyboard: [
