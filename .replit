@@ -30,10 +30,6 @@ args = "Telegram Bot"
 task = "workflow.run"
 args = "MySQL Server"
 
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "API Server"
-
 [[workflows.workflow]]
 name = "Telegram Bot"
 author = "agent"
@@ -55,19 +51,7 @@ outputType = "console"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "mkdir -p /home/runner/mysql-run /home/runner/mysql-logs && mysqld --datadir=/home/runner/mysql-data --socket=/home/runner/mysql-run/mysql.sock --pid-file=/home/runner/mysql-run/mysql.pid --port=3306 --bind-address=127.0.0.1 --mysqlx=OFF --console"
-
-[[workflows.workflow]]
-name = "API Server"
-author = "agent"
-
-[workflows.workflow.metadata]
-outputType = "console"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "PORT=8080 pnpm --filter @workspace/api-server run dev"
-waitForPort = 8080
+args = "mkdir -p /home/runner/workspace/.mysql-data /home/runner/mysql-run && ([ -d /home/runner/workspace/.mysql-data/mysql ] || mysqld --initialize-insecure --datadir=/home/runner/workspace/.mysql-data --user=runner) && mysqld --datadir=/home/runner/workspace/.mysql-data --socket=/home/runner/mysql-run/mysql.sock --pid-file=/home/runner/mysql-run/mysql.pid --port=3306 --bind-address=127.0.0.1 --mysqlx=OFF --console"
 
 [agent]
 stack = "PNPM_WORKSPACE"
