@@ -12,9 +12,8 @@ const paymentRoutes = require("./routes/paymentRoutes");
 // Payment service for handling transactions
 const paymentService = require("./services/paymentService");
 
-// Use the provided token or fall back to env variable
-const BOT_TOKEN =
-  "8427577528:AAF3z-O84R-oRALh5hiEJnUJWu5x5M-EnP0" || process.env.BOT_TOKEN;
+// Read bot token from environment variable
+const BOT_TOKEN = process.env.BOT_TOKEN;
 
 // Initialize Telegram bot with session
 const bot = new Telegraf(BOT_TOKEN);

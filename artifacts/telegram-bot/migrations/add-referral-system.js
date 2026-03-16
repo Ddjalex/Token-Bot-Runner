@@ -12,24 +12,38 @@ async function runMigration() {
   console.log(`Database: ${DB_NAME} at ${DB_HOST}`);
 
   try {
-    // Create connection
-    const connection = await mysql.createConnection({
-      host: DB_HOST,
+    // Create connection - use socket if available, otherwise TCP
+    const connConfig = {
       user: DB_USER,
       password: DB_PASSWORD,
       database: DB_NAME,
       multipleStatements: true,
-    });
+    };
+    const fs = require("fs");
+    const socketPath = "/home/runner/mysql-run/mysql.sock";
+    if (fs.existsSync(socketPath)) {
+      connConfig.socketPath = socketPath;
+    } else {
+      connConfig.host = DB_HOST;
+    }
+    const connection = await mysql.createConnection(connConfig);
 
     console.log("Connected to database. Starting migration...");
 
-    // Add referral code and referred_by fields to users table
+    // Add referral code and referred_by fields to users table (if not already present)
     console.log("Adding referral fields to users table...");
-    await connection.execute(`
-      ALTER TABLE users 
-      ADD COLUMN IF NOT EXISTS referral_code VARCHAR(20) DEFAULT NULL,
-      ADD COLUMN IF NOT EXISTS referred_by INT DEFAULT NULL;
+    const [cols] = await connection.execute(`
+      SELECT COLUMN_NAME FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users'
+      AND COLUMN_NAME IN ('referral_code', 'referred_by')
     `);
+    const existingCols = cols.map((r) => r.COLUMN_NAME);
+    if (!existingCols.includes("referral_code")) {
+      await connection.execute(`ALTER TABLE users ADD COLUMN referral_code VARCHAR(20) DEFAULT NULL`);
+    }
+    if (!existingCols.includes("referred_by")) {
+      await connection.execute(`ALTER TABLE users ADD COLUMN referred_by INT DEFAULT NULL`);
+    }
 
     // Check if indexes exist before creating them
     const [userIndexes] = await connection.execute(`

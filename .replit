@@ -34,13 +34,13 @@ args = "MySQL Server"
 name = "Telegram Bot"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd artifacts/telegram-bot && node index.js"
-waitForPort = 3001
-
 [workflows.workflow.metadata]
 outputType = "console"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash /home/runner/workspace/artifacts/telegram-bot/start-bot.sh"
+waitForPort = 3001
 
 [[workflows.workflow]]
 name = "MySQL Server"
@@ -51,7 +51,7 @@ outputType = "console"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "mkdir -p /home/runner/workspace/.mysql-data /home/runner/mysql-run && ([ -d /home/runner/workspace/.mysql-data/mysql ] || mysqld --initialize-insecure --datadir=/home/runner/workspace/.mysql-data --user=runner) && mysqld --datadir=/home/runner/workspace/.mysql-data --socket=/home/runner/mysql-run/mysql.sock --pid-file=/home/runner/mysql-run/mysql.pid --port=3306 --bind-address=127.0.0.1 --mysqlx=OFF --console"
+args = "bash /home/runner/workspace/artifacts/telegram-bot/start-mysql.sh"
 
 [agent]
 stack = "PNPM_WORKSPACE"
@@ -70,6 +70,11 @@ API_BASE_URL = "https://api.chapabingo.com"
 JWT_SECRET = "adfac"
 JWT_EXPIRES_IN = "7d"
 NODE_ENV = "development"
+DB_HOST = "127.0.0.1"
+DB_PORT = "3306"
+DB_USER = "root"
+DB_PASSWORD = ""
+DB_NAME = "bingo_db"
 
 [nix]
 channel = "stable-25_05"

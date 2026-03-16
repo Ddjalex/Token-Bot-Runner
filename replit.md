@@ -2,7 +2,9 @@
 
 ## Overview
 
-pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
+pnpm workspace monorepo using TypeScript. This is a Telegram Bingo Bot (Feshta/Jute Bingo) ecosystem — a Telegram Mini App with a bot, payment system, admin panel, and backend API.
+
+Each package manages its own dependencies.
 
 ## Stack
 
@@ -10,11 +12,21 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **Node.js version**: 24
 - **Package manager**: pnpm
 - **TypeScript version**: 5.9
-- **API framework**: Express 5
-- **Database**: PostgreSQL + Drizzle ORM
+- **API framework**: Express 5 (api-server), Express 4 (telegram-bot)
+- **Database**: PostgreSQL + Drizzle ORM (api-server) / MySQL 8.0 (telegram-bot)
+- **Telegram**: Telegraf 4 + node-telegram-bot-api
 - **Validation**: Zod (`zod/v4`), `drizzle-zod`
 - **API codegen**: Orval (from OpenAPI spec)
 - **Build**: esbuild (CJS bundle)
+
+## Replit Migration Notes
+
+- **BOT_TOKEN** is stored in the shared env vars (move to secrets for better security)
+- **MySQL data** lives in `/tmp/mysql-data` — data is wiped on container restart (expected for dev)
+- **MySQL startup**: uses `artifacts/telegram-bot/start-mysql.sh` which always does a fresh init to avoid undo tablespace conflicts in MySQL 8.0.42 on NixOS
+- **Bot startup**: uses `artifacts/telegram-bot/start-bot.sh` which waits for MySQL, creates DB, runs migrations, then starts the bot
+- **Migrations run order**: `initial-setup.js` → `add-payment-tables.js` → `add-phone-number.js` → `add-telegram-fields.js` → `add-referral-system.js`
+- **DB connection**: uses Unix socket `/home/runner/mysql-run/mysql.sock` for reliability
 
 ## Structure
 

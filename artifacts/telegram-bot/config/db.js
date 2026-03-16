@@ -1,16 +1,18 @@
 require("dotenv").config();
 const mysql = require("mysql2/promise");
 
-// Create MySQL connection pool
-const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
+// Create MySQL connection pool - use socket for reliable connection
+const poolConfig = {
+  user: process.env.DB_USER || "root",
+  password: process.env.DB_PASSWORD || "",
+  database: process.env.DB_NAME || "bingo_db",
+  socketPath: "/home/runner/mysql-run/mysql.sock",
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-});
+};
+
+const pool = mysql.createPool(poolConfig);
 
 // Test database connection
 async function testConnection() {
