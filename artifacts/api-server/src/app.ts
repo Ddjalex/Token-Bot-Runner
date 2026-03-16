@@ -11,23 +11,26 @@ const __dirname = path.dirname(__filename);
 const app: Express = express();
 
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// Serve admin panel HTML at /api/admin
+// Admin proxy MUST come before body parsers — body parsers consume the stream
+// and cause the proxy to abort. The proxy handles /api/admin/* completely.
+app.use(
+  createProxyMiddleware({
+    target: "http://localhost:3001",
+    changeOrigin: true,
+    pathFilter: (pathname) => pathname.startsWith("/api/admin/"),
+  })
+);
+
+// Serve admin panel HTML at GET /api/admin (after proxy so GET /api/admin is not proxied)
 app.get("/api/admin", (_req: Request, res: Response) => {
   const adminPath = path.resolve(__dirname, "../../telegram-bot/public/admin.html");
   res.sendFile(adminPath);
 });
 
-// Proxy all admin API calls to the telegram-bot server
-app.use(
-  "/api/admin",
-  createProxyMiddleware({
-    target: "http://localhost:3001",
-    changeOrigin: true,
-  })
-);
+// Body parsers for all other routes
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", router);
 
