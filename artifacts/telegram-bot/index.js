@@ -1398,6 +1398,22 @@ Need further assistance? Contact support at support@jutebingo.com
           ],
         },
       });
+    } else if (action === "register") {
+      await ctx.answerCbQuery();
+      const firstName = ctx.from.first_name;
+      await safeReply(
+        ctx,
+        `Welcome ${firstName}! To get started, please share your phone number.`,
+        {
+          reply_markup: {
+            keyboard: [
+              [{ text: "📱 Share My Phone Number", request_contact: true }],
+            ],
+            resize_keyboard: true,
+            one_time_keyboard: true,
+          },
+        }
+      );
     } else if (action === "copy_referral_link") {
       const telegramId = ctx.from.id;
 
@@ -2790,9 +2806,11 @@ bot.on("contact", async (ctx) => {
 
         // Insert new user
         const [result] = await db.execute(
-          "INSERT INTO users (username, phone_number, telegram_id, referral_code, referred_by) VALUES (?, ?, ?, ?, ?)",
+          "INSERT INTO users (username, first_name, last_name, phone_number, telegram_id, referral_code, referred_by) VALUES (?, ?, ?, ?, ?, ?, ?)",
           [
             username,
+            firstName,
+            lastName,
             phoneNumber,
             telegramId,
             referralCode,
@@ -2808,11 +2826,19 @@ bot.on("contact", async (ctx) => {
               result.insertId
             );
 
-            const [gameSettings] = await db.execute(
-              "SELECT welcome_bonus_amount, welcome_bonus_max_users, welcome_bonus_enabled, welcome_bonus_users_given FROM game_settings WHERE id = 1"
+            const [gsRows] = await db.execute(
+              "SELECT setting_key, setting_value FROM game_settings WHERE setting_key IN ('welcome_bonus_amount','welcome_bonus_max_users','welcome_bonus_enabled','welcome_bonus_users_given')"
             );
+            const gsMap = {};
+            gsRows.forEach(r => { gsMap[r.setting_key] = r.setting_value; });
+            const gameSettings = [{
+              welcome_bonus_enabled: gsMap.welcome_bonus_enabled === '1' || gsMap.welcome_bonus_enabled === 'true',
+              welcome_bonus_amount: parseFloat(gsMap.welcome_bonus_amount) || 0,
+              welcome_bonus_max_users: parseInt(gsMap.welcome_bonus_max_users) || 0,
+              welcome_bonus_users_given: parseInt(gsMap.welcome_bonus_users_given) || 0,
+            }];
 
-            console.log("Game settings for welcome bonus:", gameSettings);
+            console.log("Game settings for welcome bonus:", gameSettings[0]);
 
             if (
               gameSettings.length > 0 &&
@@ -2845,7 +2871,7 @@ bot.on("contact", async (ctx) => {
 
                   // Add transaction record
                   await db.execute(
-                    "INSERT INTO transactions (user_id, transaction_type, amount, status, reference_id) VALUES (?, 'bonus', ?, 'completed', ?)",
+                    "INSERT INTO transactions (user_id, transaction_type, payment_method, amount, status, reference_number) VALUES (?, 'manual_deposit', 'system', ?, 'completed', ?)",
                     [
                       result.insertId,
                       bonusAmount,
@@ -2855,7 +2881,7 @@ bot.on("contact", async (ctx) => {
 
                   // Update the count of users who received bonus
                   await db.execute(
-                    "UPDATE game_settings SET welcome_bonus_users_given = welcome_bonus_users_given + 1 WHERE id = 1"
+                    "INSERT INTO game_settings (setting_key, setting_value) VALUES ('welcome_bonus_users_given', 1) ON DUPLICATE KEY UPDATE setting_value = setting_value + 1"
                   );
 
                   console.log(
