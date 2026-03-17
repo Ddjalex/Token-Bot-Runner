@@ -94,4 +94,4 @@ DB_NAME = "feshta_bingo"
 
 [nix]
 channel = "stable-25_05"
-packages = ["mysql80"]
+packages = ["mysql80", "unzip"]
