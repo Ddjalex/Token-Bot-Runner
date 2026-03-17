@@ -91,6 +91,7 @@ DB_PORT = "3306"
 DB_USER = "root"
 DB_PASSWORD = ""
 DB_NAME = "feshta_bingo"
+API_KEY = "c8db87c5f342185c635ff3566ac85112705dd3d3ad11feb76a8745b531c09e75"
 
 [nix]
 channel = "stable-25_05"
