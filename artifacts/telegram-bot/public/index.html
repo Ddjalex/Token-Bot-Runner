@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Bingo Mini App</title>
+    <title>Jute Bingo</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
       * {
@@ -107,7 +107,7 @@
   <body>
     <div class="container">
       <header>
-        <h1>🎮 Bingo Game 🎲</h1>
+        <h1>🎮 Jute Bingo 🎲</h1>
       </header>
 
       <div class="game-info">
@@ -134,7 +134,7 @@
     </div>
 
     <footer>
-      <p>© 2023 Bingo Game</p>
+      <p>© 2025 Jute Bingo</p>
     </footer>
 
     <script>
@@ -153,17 +153,11 @@
       document
         .getElementById("startButton")
         .addEventListener("click", function () {
-          // Redirect to the main game URL
-          window.location.href = "https://your-bingo-game-url.com/game";
-
-          // Or send data back to the bot
-          /*
-            telegramWebApp.sendData(JSON.stringify({
-                action: 'start_game',
-                timestamp: new Date().toISOString()
-            }));
-            telegramWebApp.close();
-            */
+          telegramWebApp.sendData(JSON.stringify({
+            action: 'start_game',
+            timestamp: new Date().toISOString()
+          }));
+          telegramWebApp.close();
         });
 
       // Add back button event if needed
@@ -179,9 +173,13 @@
       // Handle main button if needed
       telegramWebApp.MainButton.setText("PLAY NOW");
       telegramWebApp.MainButton.onClick(function () {
-        // Redirect to the main game URL
-        window.location.href = "https://your-bingo-game-url.com/game";
+        telegramWebApp.sendData(JSON.stringify({
+          action: 'start_game',
+          timestamp: new Date().toISOString()
+        }));
+        telegramWebApp.close();
       });
+      telegramWebApp.MainButton.show();
     </script>
   </body>
 </html>
