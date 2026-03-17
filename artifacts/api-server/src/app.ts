@@ -26,7 +26,6 @@ app.use(
     target: "http://localhost:3001",
     changeOrigin: true,
     pathFilter: (pathname) => pathname.startsWith("/api/game-api/"),
-    pathRewrite: { "^/api/game-api": "/game-api" },
   })
 );
 

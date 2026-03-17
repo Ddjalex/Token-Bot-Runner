@@ -441,7 +441,8 @@ async function loadPaymentSettings() {
     { key: 'CBE', label: '🏦 CBE (Commercial Bank)' }
   ];
   container.innerHTML = methodDefs.map(({ key, label }) => {
-    const s = settings.find(x => x.method_name && x.method_name.toUpperCase() === key) || {};
+    const s = settings.find(x => x.payment_method && x.payment_method.toUpperCase() === key) || {};
+    const isActive = s.is_active === 1 || s.is_active === true;
     return `
     <div class="form-card">
       <h3>${label}</h3>
@@ -450,8 +451,8 @@ async function loadPaymentSettings() {
         <div class="form-group"><label>Account Name</label><input type="text" id="ps-${key}-name" value="${s.account_name||''}" /></div>
         <div class="form-group"><label>Status</label>
           <select id="ps-${key}-status">
-            <option value="active" ${s.status==='active'||!s.status?'selected':''}>✅ Active</option>
-            <option value="inactive" ${s.status==='inactive'?'selected':''}>❌ Inactive</option>
+            <option value="active" ${isActive||!s.payment_method?'selected':''}>✅ Active</option>
+            <option value="inactive" ${!isActive&&s.payment_method?'selected':''}>❌ Inactive</option>
           </select>
         </div>
       </div>

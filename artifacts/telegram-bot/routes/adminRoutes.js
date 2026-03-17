@@ -166,19 +166,22 @@ router.post("/payment-settings", checkApiKey, async (req, res) => {
     const { method_name, account_number, account_name, status } = req.body;
     if (!method_name) return res.status(400).json({ success: false, message: "method_name required" });
 
+    const paymentMethod = method_name.toLowerCase();
+    const isActive = status === "active" || status === "1" || status === 1 ? 1 : 0;
+
     const [existing] = await db.execute(
-      "SELECT id FROM payment_settings WHERE method_name = ?",
-      [method_name]
+      "SELECT id FROM payment_settings WHERE payment_method = ?",
+      [paymentMethod]
     );
     if (existing.length > 0) {
       await db.execute(
-        "UPDATE payment_settings SET account_number = ?, account_name = ?, status = ? WHERE method_name = ?",
-        [account_number, account_name, status, method_name]
+        "UPDATE payment_settings SET account_number = ?, account_name = ?, is_active = ? WHERE payment_method = ?",
+        [account_number, account_name, isActive, paymentMethod]
       );
     } else {
       await db.execute(
-        "INSERT INTO payment_settings (method_name, account_number, account_name, status) VALUES (?, ?, ?, ?)",
-        [method_name, account_number, account_name, status]
+        "INSERT INTO payment_settings (payment_method, account_number, account_name, is_active) VALUES (?, ?, ?, ?)",
+        [paymentMethod, account_number, account_name, isActive]
       );
     }
     res.json({ success: true, message: "Payment settings saved" });
