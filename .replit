@@ -30,6 +30,10 @@ args = "Telegram Bot"
 task = "workflow.run"
 args = "MySQL Server"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "API Server"
+
 [[workflows.workflow]]
 name = "Telegram Bot"
 author = "agent"
@@ -53,6 +57,18 @@ outputType = "console"
 task = "shell.exec"
 args = "mkdir -p /home/runner/mysql-run /home/runner/mysql-undo && ([ -f /home/runner/workspace/.mysql-data/.initialized ] || (rm -rf /home/runner/workspace/.mysql-data && mkdir -p /home/runner/workspace/.mysql-data && mysqld --defaults-file=/home/runner/workspace/config/mysql.cnf --initialize-insecure && touch /home/runner/workspace/.mysql-data/.initialized)) && mysqld --defaults-file=/home/runner/workspace/config/mysql.cnf"
 
+[[workflows.workflow]]
+name = "API Server"
+author = "agent"
+
+[workflows.workflow.metadata]
+outputType = "console"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "PORT=8080 pnpm --filter @workspace/api-server run dev"
+waitForPort = 8080
+
 [agent]
 stack = "PNPM_WORKSPACE"
 expertMode = true
@@ -65,7 +81,7 @@ timeoutMs = 20000
 
 [userenv.shared]
 BOT_TOKEN = "8427577528:AAF3z-O84R-oRALh5hiEJnUJWu5x5M-EnP0"
-WEBAPP_URL = "https://e14ef657-42eb-4fc3-b81e-be15357f54f0-00-3gj7a58tlzhbs.picard.replit.dev"
+WEBAPP_URL = "https://17abac5e-5e3c-4ad0-9570-4884a4a51216-00-33n2giz60x1d7.riker.replit.dev/api/game"
 API_BASE_URL = "https://api.chapabingo.com"
 JWT_SECRET = "adfac"
 JWT_EXPIRES_IN = "7d"
