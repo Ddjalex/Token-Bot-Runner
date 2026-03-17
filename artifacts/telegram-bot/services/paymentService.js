@@ -768,37 +768,41 @@ const processManualDeposit = async (userId, adminId, amount, note) => {
 
 // Function to get game settings
 const getGameSettings = async () => {
+  const defaults = {
+    min_deposit_amount: 0,
+    min_required_wins: 0,
+    min_withdrawal_amount: 0,
+    welcome_bonus_amount: 0,
+    welcome_bonus_max_users: 0,
+    welcome_bonus_enabled: false,
+    welcome_bonus_users_given: 0,
+    min_bet: 5,
+    max_bet: 1000,
+    win_multiplier: 2,
+    default_balance: 0,
+  };
   try {
-    const [settings] = await db.execute(
-      "SELECT * FROM game_settings WHERE id = 1"
+    const [rows] = await db.execute(
+      "SELECT setting_key, setting_value FROM game_settings"
     );
-
-    if (settings.length === 0) {
-      // Return default settings if none exist
-      return {
-        min_deposit_amount: 0,
-        min_required_wins: 0,
-        min_withdrawal_amount: 0,
-        welcome_bonus_amount: 0,
-        welcome_bonus_max_users: 0,
-        welcome_bonus_enabled: false,
-        welcome_bonus_users_given: 0,
-      };
-    }
-
-    return settings[0];
+    const raw = {};
+    rows.forEach(r => { raw[r.setting_key] = r.setting_value; });
+    return {
+      min_deposit_amount: parseFloat(raw.min_deposit_amount) || 0,
+      min_required_wins: parseInt(raw.min_required_wins) || 0,
+      min_withdrawal_amount: parseFloat(raw.min_withdrawal_amount) || 0,
+      welcome_bonus_amount: parseFloat(raw.welcome_bonus_amount) || 0,
+      welcome_bonus_max_users: parseInt(raw.welcome_bonus_max_users) || 0,
+      welcome_bonus_enabled: raw.welcome_bonus_enabled === '1' || raw.welcome_bonus_enabled === 'true',
+      welcome_bonus_users_given: parseInt(raw.welcome_bonus_users_given) || 0,
+      min_bet: parseFloat(raw.min_bet) || defaults.min_bet,
+      max_bet: parseFloat(raw.max_bet) || defaults.max_bet,
+      win_multiplier: parseFloat(raw.win_multiplier) || defaults.win_multiplier,
+      default_balance: parseFloat(raw.default_balance) || 0,
+    };
   } catch (error) {
     console.error("Error fetching game settings:", error);
-    // Return default settings on error
-    return {
-      min_deposit_amount: 0,
-      min_required_wins: 0,
-      min_withdrawal_amount: 0,
-      welcome_bonus_amount: 0,
-      welcome_bonus_max_users: 0,
-      welcome_bonus_enabled: false,
-      welcome_bonus_users_given: 0,
-    };
+    return defaults;
   }
 };
 

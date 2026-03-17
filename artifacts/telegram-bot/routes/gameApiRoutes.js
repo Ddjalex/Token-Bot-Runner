@@ -97,8 +97,8 @@ router.post("/start-game", async (req, res) => {
 
     await db.execute("UPDATE users SET balance = balance - ? WHERE id = ?", [bet, user.id]);
     await db.execute(
-      "INSERT INTO transactions (user_id, type, payment_method, amount, status, notes) VALUES (?, 'game', 'bingo', ?, 'completed', ?)",
-      [user.id, bet, `Bingo game bet - ${bet} ETB`]
+      "INSERT INTO transactions (user_id, transaction_type, payment_method, amount, status) VALUES (?, 'game_entry', 'system', ?, 'completed')",
+      [user.id, bet]
     );
 
     const card = generateBingoCard();
@@ -137,8 +137,8 @@ router.post("/claim-win", async (req, res) => {
     const prize = parseFloat((game.bet * 2).toFixed(2));
     await db.execute("UPDATE users SET balance = balance + ? WHERE id = ?", [prize, game.userId]);
     await db.execute(
-      "INSERT INTO transactions (user_id, type, payment_method, amount, status, notes) VALUES (?, 'bonus', 'bingo', ?, 'completed', ?)",
-      [game.userId, prize, `Bingo win prize - ${prize} ETB`]
+      "INSERT INTO transactions (user_id, transaction_type, payment_method, amount, status) VALUES (?, 'game_win', 'system', ?, 'completed')",
+      [game.userId, prize]
     );
 
     const [[updated]] = await db.execute("SELECT balance FROM users WHERE id = ?", [game.userId]);

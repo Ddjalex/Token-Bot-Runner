@@ -113,7 +113,7 @@ router.post("/withdrawals/:id/process", checkApiKey, async (req, res) => {
           [wr.amount, wr.user_id, wr.amount]
         );
         await db.execute(
-          "INSERT INTO transactions (user_id, type, payment_method, amount, status) VALUES (?, 'withdrawal', ?, ?, 'completed')",
+          "INSERT INTO transactions (user_id, transaction_type, payment_method, amount, status) VALUES (?, 'withdrawal', ?, ?, 'completed')",
           [wr.user_id, wr.payment_method, wr.amount]
         );
       }
@@ -143,8 +143,8 @@ router.post("/users/:id/balance", checkApiKey, async (req, res) => {
     if (!amount) return res.status(400).json({ success: false, message: "Amount required" });
     await db.execute("UPDATE users SET balance = balance + ? WHERE id = ?", [amount, id]);
     await db.execute(
-      "INSERT INTO transactions (user_id, type, payment_method, amount, status, notes) VALUES (?, 'bonus', 'system', ?, 'completed', ?)",
-      [id, amount, note || "Manual admin adjustment"]
+      "INSERT INTO transactions (user_id, transaction_type, payment_method, amount, status) VALUES (?, 'manual_deposit', 'system', ?, 'completed')",
+      [id, amount]
     );
     res.json({ success: true, message: "Balance updated" });
   } catch (err) {
