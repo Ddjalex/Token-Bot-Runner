@@ -81,7 +81,7 @@ timeoutMs = 20000
 
 [userenv.shared]
 BOT_TOKEN = "8427577528:AAF3z-O84R-oRALh5hiEJnUJWu5x5M-EnP0"
-WEBAPP_URL = "https://17abac5e-5e3c-4ad0-9570-4884a4a51216-00-33n2giz60x1d7.riker.replit.dev/api/game"
+WEBAPP_URL = "https://00325c40-b2ce-4e0e-92b6-a7bf99db542a-00-22h7sg9vy0mxv.spock.replit.dev/api/game"
 API_BASE_URL = "https://api.chapabingo.com"
 JWT_SECRET = "adfac"
 JWT_EXPIRES_IN = "7d"
@@ -92,6 +92,8 @@ DB_USER = "root"
 DB_PASSWORD = ""
 DB_NAME = "feshta_bingo"
 API_KEY = "c8db87c5f342185c635ff3566ac85112705dd3d3ad11feb76a8745b531c09e75"
+ADMIN_USERNAME = "addis@alex"
+ADMIN_PASSWORD = "a1e2y3t4h5"
 
 [nix]
 channel = "stable-25_05"
