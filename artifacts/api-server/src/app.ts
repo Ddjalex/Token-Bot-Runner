@@ -28,6 +28,12 @@ app.get("/api/admin", (_req: Request, res: Response) => {
   res.sendFile(adminPath);
 });
 
+// Serve the Telegram Mini App (game) at /api/game and /api/game/login
+app.get(["/api/game", "/api/game/login"], (_req: Request, res: Response) => {
+  const gamePath = path.resolve(__dirname, "../../telegram-bot/public/index.html");
+  res.sendFile(gamePath);
+});
+
 // Body parsers for all other routes
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

@@ -127,7 +127,7 @@ app.use("/api/admin", adminRoutes);
 const getUserByTelegramId = async (telegramId) => {
   try {
     const [rows] = await db.execute(
-      "SELECT id, username, phone_number, balance, telegram_id, isBlocked, blocked_reason FROM users WHERE telegram_id = ?",
+      "SELECT id, username, phone_number, balance, telegram_id, is_banned FROM users WHERE telegram_id = ?",
       [telegramId]
     );
 
@@ -142,7 +142,7 @@ const getUserByTelegramId = async (telegramId) => {
 const getUserByPhoneNumber = async (phoneNumber) => {
   try {
     const [rows] = await db.execute(
-      "SELECT id, username, phone_number, balance, telegram_id, isBlocked, blocked_reason FROM users WHERE phone_number = ?",
+      "SELECT id, username, phone_number, balance, telegram_id, is_banned FROM users WHERE phone_number = ?",
       [phoneNumber]
     );
 
@@ -166,12 +166,11 @@ const checkUserBlocked = async (ctx, telegramId) => {
     return { isBlocked: false, user: null };
   }
 
-  if (user.isBlocked === 1) {
-    const reason = user.blocked_reason || "No reason provided";
+  if (user.is_banned === 1) {
     try {
       await safeReply(
         ctx,
-        `❌ Your account has been blocked.\n\nReason: ${reason}\n\nPlease contact support for assistance.`
+        `❌ Your account has been blocked.\n\nPlease contact support for assistance.`
       );
     } catch (error) {
       console.error("Error sending blocked message:", error);
@@ -2781,10 +2780,8 @@ bot.on("contact", async (ctx) => {
 
         // Insert new user
         const [result] = await db.execute(
-          "INSERT INTO users (username, email, password, phone_number, telegram_id, referral_code, referred_by) VALUES (?, ?, ?, ?, ?, ?, ?)",
+          "INSERT INTO users (username, phone_number, telegram_id, referral_code, referred_by) VALUES (?, ?, ?, ?, ?)",
           [
-            username,
-            username,
             username,
             phoneNumber,
             telegramId,
