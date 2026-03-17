@@ -65,7 +65,7 @@ timeoutMs = 20000
 
 [userenv.shared]
 BOT_TOKEN = "8427577528:AAF3z-O84R-oRALh5hiEJnUJWu5x5M-EnP0"
-WEBAPP_URL = "https://test-frontend.chapabingo.com"
+WEBAPP_URL = "https://e14ef657-42eb-4fc3-b81e-be15357f54f0-00-3gj7a58tlzhbs.picard.replit.dev"
 API_BASE_URL = "https://api.chapabingo.com"
 JWT_SECRET = "adfac"
 JWT_EXPIRES_IN = "7d"

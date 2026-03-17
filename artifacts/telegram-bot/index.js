@@ -112,8 +112,11 @@ const indexRoutes = require("./routes/index");
 const adminRoutes = require("./routes/adminRoutes");
 const gameApiRoutes = require("./routes/gameApiRoutes");
 
-// Serve admin panel HTML
+// Serve static files from public folder (Mini App)
 const path = require("path");
+app.use(express.static(path.join(__dirname, "public")));
+
+// Serve admin panel HTML
 app.get("/admin", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "admin.html"));
 });
@@ -123,7 +126,12 @@ app.use("/api", indexRoutes);
 app.use("/api/telegram", telegramRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/admin", adminRoutes);
-app.use("/game-api", gameApiRoutes);
+app.use("/api/game-api", gameApiRoutes);
+
+// SPA fallback - serve index.html for all other routes (Mini App)
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
 
 // Get user data from database by Telegram ID
 const getUserByTelegramId = async (telegramId) => {
