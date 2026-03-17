@@ -51,7 +51,7 @@ outputType = "console"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "mkdir -p /home/runner/workspace/.mysql-data /home/runner/mysql-run && ([ -d /home/runner/workspace/.mysql-data/mysql ] || mysqld --initialize-insecure --datadir=/home/runner/workspace/.mysql-data --user=runner) && mysqld --datadir=/home/runner/workspace/.mysql-data --socket=/home/runner/mysql-run/mysql.sock --pid-file=/home/runner/mysql-run/mysql.pid --port=3306 --bind-address=127.0.0.1 --mysqlx=OFF --console"
+args = "mkdir -p /home/runner/mysql-run /home/runner/mysql-undo && ([ -f /home/runner/workspace/.mysql-data/.initialized ] || (rm -rf /home/runner/workspace/.mysql-data && mkdir -p /home/runner/workspace/.mysql-data && mysqld --defaults-file=/home/runner/workspace/config/mysql.cnf --initialize-insecure && touch /home/runner/workspace/.mysql-data/.initialized)) && mysqld --defaults-file=/home/runner/workspace/config/mysql.cnf"
 
 [agent]
 stack = "PNPM_WORKSPACE"
@@ -70,6 +70,11 @@ API_BASE_URL = "https://api.chapabingo.com"
 JWT_SECRET = "adfac"
 JWT_EXPIRES_IN = "7d"
 NODE_ENV = "development"
+DB_HOST = "127.0.0.1"
+DB_PORT = "3306"
+DB_USER = "root"
+DB_PASSWORD = ""
+DB_NAME = "feshta_bingo"
 
 [nix]
 channel = "stable-25_05"
