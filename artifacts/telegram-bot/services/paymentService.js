@@ -25,7 +25,7 @@ const secureAxios = axios.create({
 // Get active payment settings for a specific payment method
 const getPaymentSettings = async (paymentMethod) => {
   const [settings] = await db.execute(
-    "SELECT * FROM payment_settings WHERE payment_method = ? AND status = 'active' LIMIT 1",
+    "SELECT * FROM payment_settings WHERE payment_method = ? AND is_active = 1 LIMIT 1",
     [paymentMethod]
   );
 
@@ -35,7 +35,7 @@ const getPaymentSettings = async (paymentMethod) => {
 // Get all active payment settings
 const getAllPaymentSettings = async () => {
   const [settings] = await db.execute(
-    "SELECT * FROM payment_settings WHERE status = 'active'"
+    "SELECT * FROM payment_settings WHERE is_active = 1"
   );
 
   return settings;

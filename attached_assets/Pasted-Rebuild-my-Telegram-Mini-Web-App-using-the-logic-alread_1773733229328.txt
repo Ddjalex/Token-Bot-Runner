@@ -1,0 +1,127 @@
+Rebuild my Telegram Mini Web App using the logic already inside my uploaded ZIP, and do NOT invent a new flow from scratch.
+
+PROJECT SOURCE OF TRUTH
+Use the existing backend, bot flow, and Telegram logic from these files/folders:
+
+- telegram-bot-full/index.js
+- telegram-bot-full/server.js
+- telegram-bot-full/config/db.js
+- telegram-bot-full/routes/
+- telegram-bot-full/services/
+- telegram-bot-full/migrations/
+- telegram-bot-full/public/index.html
+
+GOAL
+I want Replit to extract and reuse my real Telegram bot + mini web app logic from this project, then rebuild the frontend UI professionally while preserving my existing business logic, Telegram flow, database flow, and API behavior.
+
+IMPORTANT RULES
+- Do not replace my Telegram flow with dummy demo logic.
+- Do not create fake sample data unless clearly marked as seed/test data.
+- Keep my existing API routes and database structure compatible.
+- Reuse my current Telegram bot launch flow, Telegram user verification flow, and user linking flow.
+- Preserve all existing environment variables if found in my code.
+- Refactor carefully, but do not break old endpoints unless creating a compatibility layer.
+- Build the new frontend on top of my current logic instead of starting from zero.
+
+WHAT TO ANALYZE FIRST
+1. Inspect how the Telegram bot opens the web app from `index.js`
+2. Inspect how Express serves the app from `server.js`
+3. Inspect Telegram-related endpoints inside `routes/telegramRoutes.js`
+4. Inspect auth/verification logic inside `services/telegramAuthService.js`
+5. Inspect DB connection and related tables from `config/db.js` and `migrations/`
+6. Inspect the existing mini app placeholder UI in `public/index.html`
+
+WHAT TO BUILD
+Build a clean full-stack Telegram Mini App with these layers:
+
+1. BACKEND
+- Keep Node.js + Express backend
+- Reuse existing Telegram bot logic from `index.js`
+- Reuse existing API logic from `routes/`
+- Reuse existing DB access pattern from `config/db.js`
+- Keep support for Telegram user verification, account linking, and user/game data retrieval if already present
+- Maintain compatibility with existing bot commands and existing mini-app launch flow
+
+2. FRONTEND
+Replace the current simple `public/index.html` placeholder with a professional Telegram Mini App UI.
+You may use:
+- React + Vite frontend, served separately or integrated with Express
+OR
+- a better structured vanilla frontend if easier for compatibility
+
+Frontend requirements:
+- Must load Telegram WebApp SDK
+- Must use `window.Telegram.WebApp`
+- Must support Telegram user context from init data
+- Must support MainButton and BackButton correctly
+- Must work inside Telegram in mobile view first
+- Must feel like a premium game/utility mini app
+- Must have responsive modern UI
+- Must use my actual backend endpoints, not fake ones
+
+3. REQUIRED PAGES / SCREENS
+Create these screens if supported by the existing backend logic:
+- Splash / welcome screen
+- Login / link account screen
+- Dashboard / home
+- User profile summary
+- Game/history or activity page
+- Wallet / payment / transaction page if backend already supports it
+- Error / not linked / unauthorized state
+- Loading / network state
+- Admin-only views only if backend already supports them
+
+4. TELEGRAM INTEGRATION
+Preserve and improve:
+- web_app launch button from bot
+- reading Telegram user ID / initData
+- verifying Telegram user on backend
+- linking Telegram account to existing user record
+- receiving `web_app_data` if already used
+- secure validation flow where possible
+
+5. DATABASE
+- Reuse current MySQL schema/migrations
+- Do not redesign DB unnecessarily
+- Add only missing columns/tables if required and clearly document them
+- Keep compatibility with existing `users` table and any telegram-related fields
+
+6. CODE QUALITY
+- Organize code clearly into frontend, backend, bot, services, routes
+- Remove duplication
+- Add comments only where useful
+- Create a clean `.env.example`
+- Add startup scripts for Replit
+- Add a README with:
+  - how bot starts
+  - how web app starts
+  - required env vars
+  - webhook vs polling note
+  - Telegram mini app setup steps
+  - database setup steps
+
+WHAT I EXPECT REPLIT TO OUTPUT
+I want Replit to produce:
+- cleaned project structure
+- working Telegram bot
+- working Express backend
+- rebuilt professional Mini App UI
+- compatibility with my existing logic
+- clear list of reused files
+- clear list of newly created files
+- clear list of changed files
+- exact steps to run in Replit
+
+IF SOME LOGIC IS MISSING
+If the ZIP does not contain a complete frontend, infer the frontend from the existing bot routes and backend behavior, but keep the backend API contract aligned with my existing code.
+
+DELIVERABLE FORMAT
+At the end, provide:
+1. Final project structure
+2. Which old files were reused
+3. Which new files were created
+4. Any required migration changes
+5. Any required `.env` variables
+6. Exact run instructions for Replit
+
+START NOW BY READING THE EXISTING FILES FIRST AND MAPPING THE CURRENT TELEGRAM MINI APP FLOW BEFORE CHANGING ANYTHING.

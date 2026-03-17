@@ -29,6 +29,22 @@ app.use(
   })
 );
 
+app.use(
+  createProxyMiddleware({
+    target: "http://localhost:3001",
+    changeOrigin: true,
+    pathFilter: (pathname) => pathname.startsWith("/api/payment/"),
+  })
+);
+
+app.use(
+  createProxyMiddleware({
+    target: "http://localhost:3001",
+    changeOrigin: true,
+    pathFilter: (pathname) => pathname.startsWith("/api/telegram/"),
+  })
+);
+
 // Serve admin panel HTML at GET /api/admin (after proxy so GET /api/admin is not proxied)
 app.get("/api/admin", (_req: Request, res: Response) => {
   const adminPath = path.resolve(__dirname, "../../telegram-bot/public/admin.html");
