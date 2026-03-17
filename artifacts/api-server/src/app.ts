@@ -12,13 +12,21 @@ const app: Express = express();
 
 app.use(cors());
 
-// Admin proxy MUST come before body parsers — body parsers consume the stream
-// and cause the proxy to abort. The proxy handles /api/admin/* completely.
+// Admin + Game API proxies MUST come before body parsers
 app.use(
   createProxyMiddleware({
     target: "http://localhost:3001",
     changeOrigin: true,
     pathFilter: (pathname) => pathname.startsWith("/api/admin/"),
+  })
+);
+
+app.use(
+  createProxyMiddleware({
+    target: "http://localhost:3001",
+    changeOrigin: true,
+    pathFilter: (pathname) => pathname.startsWith("/api/game-api/"),
+    pathRewrite: { "^/api/game-api": "/game-api" },
   })
 );
 

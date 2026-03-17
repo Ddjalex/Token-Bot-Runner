@@ -1,185 +1,478 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Jute Bingo</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Jute Bingo</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #17212b;
+      --card-bg: #1e2d3d;
+      --accent: #f5a623;
+      --green: #27ae60;
+      --red: #e74c3c;
+      --blue: #3498db;
+      --text: #ffffff;
+      --sub: #8a9bb0;
+      --called: #f5a623;
+      --marked: #27ae60;
+      --free: #9b59b6;
+    }
+    body { font-family: 'Roboto', Arial, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
 
-      body {
-        font-family: "Roboto", Arial, sans-serif;
-        background-color: #17212b;
-        color: #ffffff;
-        margin: 0;
-        padding: 0;
-        height: 100vh;
-        display: flex;
-        flex-direction: column;
-      }
+    /* HEADER */
+    .header { background: var(--card-bg); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--accent); }
+    .header .logo { font-size: 18px; font-weight: bold; color: var(--accent); }
+    .header .balance { font-size: 14px; color: var(--sub); text-align: right; }
+    .header .balance span { color: var(--accent); font-weight: bold; font-size: 16px; }
 
-      .container {
-        max-width: 100%;
-        margin: 0 auto;
-        padding: 20px;
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-      }
+    /* SCREENS */
+    .screen { display: none; flex: 1; flex-direction: column; padding: 16px; gap: 12px; }
+    .screen.active { display: flex; }
 
-      header {
-        text-align: center;
-        margin-bottom: 20px;
-      }
+    /* LOADING */
+    #screen-loading { align-items: center; justify-content: center; }
+    .spinner { width: 48px; height: 48px; border: 5px solid rgba(245,166,35,0.3); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-      h1 {
-        color: #fff;
-        margin: 10px 0;
-        font-size: 24px;
-      }
+    /* LOBBY */
+    .welcome-box { background: var(--card-bg); border-radius: 12px; padding: 20px; text-align: center; border: 1px solid rgba(245,166,35,0.3); }
+    .welcome-box h2 { color: var(--accent); font-size: 22px; margin-bottom: 8px; }
+    .welcome-box p { color: var(--sub); font-size: 14px; line-height: 1.5; }
+    .bet-section { background: var(--card-bg); border-radius: 12px; padding: 16px; }
+    .bet-section h3 { font-size: 14px; color: var(--sub); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .bet-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .bet-btn { background: rgba(245,166,35,0.1); border: 1px solid rgba(245,166,35,0.3); color: var(--accent); padding: 10px 4px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; transition: all 0.2s; }
+    .bet-btn.selected { background: var(--accent); color: #000; border-color: var(--accent); }
+    .bet-btn:hover { background: rgba(245,166,35,0.25); }
+    .custom-bet { display: flex; gap: 8px; margin-top: 8px; }
+    .custom-bet input { flex: 1; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 8px; padding: 10px 12px; font-size: 14px; outline: none; }
+    .custom-bet input:focus { border-color: var(--accent); }
+    .start-btn { width: 100%; padding: 16px; background: var(--accent); color: #000; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; transition: opacity 0.2s; margin-top: 4px; }
+    .start-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .info-row { display: flex; gap: 8px; }
+    .info-card { flex: 1; background: var(--card-bg); border-radius: 10px; padding: 12px; text-align: center; }
+    .info-card .val { font-size: 18px; font-weight: bold; color: var(--accent); }
+    .info-card .lbl { font-size: 11px; color: var(--sub); margin-top: 2px; }
 
-      .main-button {
-        background-color: #3498db;
-        color: white;
-        border: none;
-        border-radius: 10px;
-        padding: 15px 30px;
-        font-size: 18px;
-        cursor: pointer;
-        margin: 15px auto;
-        display: block;
-        transition: background-color 0.3s;
-      }
+    /* GAME SCREEN */
+    #screen-game { padding: 8px; }
+    .game-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 8px 4px; }
+    .game-header .pot { color: var(--accent); font-weight: bold; font-size: 15px; }
+    .game-header .timer-bar { display: flex; align-items: center; gap: 6px; }
+    .timer-circle { width: 36px; height: 36px; border-radius: 50%; background: var(--card-bg); border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; color: var(--accent); }
 
-      .main-button:hover {
-        background-color: #2980b9;
-      }
+    /* BINGO HEADER ROW */
+    .bingo-header { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin: 6px 0 4px; }
+    .bingo-letter { text-align: center; font-size: 18px; font-weight: bold; padding: 6px 0; border-radius: 6px; }
+    .bingo-letter:nth-child(1) { color: #e74c3c; }
+    .bingo-letter:nth-child(2) { color: #f5a623; }
+    .bingo-letter:nth-child(3) { color: #2ecc71; }
+    .bingo-letter:nth-child(4) { color: #3498db; }
+    .bingo-letter:nth-child(5) { color: #9b59b6; }
 
-      .game-info {
-        background-color: #243447;
-        border-radius: 10px;
-        padding: 20px;
-        margin-bottom: 20px;
-        text-align: center;
-      }
+    /* BINGO CARD */
+    .bingo-card { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+    .cell { background: var(--card-bg); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: clamp(14px, 4vw, 18px); font-weight: bold; cursor: pointer; transition: all 0.25s; position: relative; }
+    .cell.free { background: var(--free); border-color: var(--free); font-size: 11px; color: #fff; }
+    .cell.called { border-color: var(--called); box-shadow: 0 0 8px rgba(245,166,35,0.4); }
+    .cell.marked { background: var(--marked); border-color: var(--marked); color: #fff; transform: scale(0.95); }
+    .cell.marked::after { content: '✓'; position: absolute; top: 2px; right: 4px; font-size: 10px; opacity: 0.8; }
 
-      .game-info h2 {
-        margin-bottom: 10px;
-        color: #3498db;
-      }
+    /* CALLED NUMBERS */
+    .called-section { background: var(--card-bg); border-radius: 10px; padding: 10px; margin-top: 6px; }
+    .called-section h4 { font-size: 11px; color: var(--sub); text-transform: uppercase; margin-bottom: 6px; }
+    .current-call { font-size: 36px; font-weight: bold; color: var(--accent); text-align: center; padding: 8px; }
+    .call-letter { font-size: 18px; color: var(--sub); }
+    .recent-calls { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; max-height: 70px; overflow: hidden; }
+    .rcall { background: rgba(245,166,35,0.15); border: 1px solid rgba(245,166,35,0.3); color: var(--accent); border-radius: 6px; padding: 3px 8px; font-size: 12px; font-weight: bold; }
+    .rcall.old { opacity: 0.5; }
 
-      .game-info p {
-        line-height: 1.6;
-        margin-bottom: 10px;
-      }
+    /* CLAIM / CONTROLS */
+    .game-controls { display: flex; gap: 8px; margin-top: 8px; }
+    .claim-btn { flex: 1; padding: 13px; background: var(--green); color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; transition: opacity 0.2s; }
+    .claim-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .quit-btn { padding: 13px 18px; background: rgba(231,76,60,0.2); color: var(--red); border: 1px solid var(--red); border-radius: 10px; font-size: 14px; cursor: pointer; }
+    .automark-toggle { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--sub); cursor: pointer; }
+    .automark-toggle input { cursor: pointer; }
 
-      .feature-list {
-        margin-top: 10px;
-      }
+    /* WIN SCREEN */
+    #screen-win { align-items: center; justify-content: center; text-align: center; }
+    .win-box { background: var(--card-bg); border-radius: 16px; padding: 32px 24px; border: 2px solid var(--green); max-width: 320px; width: 100%; }
+    .win-emoji { font-size: 64px; margin-bottom: 12px; animation: bounce 0.6s infinite alternate; }
+    @keyframes bounce { from { transform: scale(1); } to { transform: scale(1.15); } }
+    .win-box h2 { color: var(--green); font-size: 28px; margin-bottom: 8px; }
+    .win-prize { font-size: 36px; font-weight: bold; color: var(--accent); margin: 12px 0; }
+    .win-box p { color: var(--sub); margin-bottom: 20px; }
+    .play-again-btn { width: 100%; padding: 14px; background: var(--accent); color: #000; border: none; border-radius: 10px; font-size: 17px; font-weight: bold; cursor: pointer; }
 
-      .feature-list li {
-        margin-bottom: 8px;
-        list-style-type: none;
-        position: relative;
-        padding-left: 20px;
-      }
+    /* TOAST */
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: #1a2840; color: #fff; padding: 10px 20px; border-radius: 24px; font-size: 14px; z-index: 9999; transition: transform 0.3s; border: 1px solid rgba(255,255,255,0.1); max-width: 280px; text-align: center; }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.err { border-color: var(--red); color: var(--red); }
 
-      .feature-list li:before {
-        content: "•";
-        color: #3498db;
-        font-size: 20px;
-        position: absolute;
-        left: 0;
-      }
+    /* PROGRESS BAR */
+    .progress-bar { height: 3px; background: rgba(245,166,35,0.2); border-radius: 2px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--accent); transition: width 1s linear; }
+  </style>
+</head>
+<body>
+<header class="header">
+  <div class="logo">🎱 Jute Bingo</div>
+  <div class="balance" id="header-balance" style="display:none">Balance<br><span id="balance-val">0.00</span> ETB</div>
+</header>
 
-      footer {
-        text-align: center;
-        padding: 10px;
-        background-color: #243447;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <header>
-        <h1>🎮 Jute Bingo 🎲</h1>
-      </header>
+<div id="screen-loading" class="screen active">
+  <div class="spinner"></div>
+  <p style="color:var(--sub);margin-top:16px;font-size:14px;">Loading...</p>
+</div>
 
-      <div class="game-info">
-        <h2>Welcome to Bingo!</h2>
-        <p>
-          The exciting real-time multiplayer bingo game that you can play with
-          friends!
-        </p>
-        <p>Click the button below to start playing and win exciting prizes.</p>
-      </div>
-
-      <button class="main-button" id="startButton">Start Playing</button>
-
-      <div class="game-info">
-        <h2>Game Features</h2>
-        <ul class="feature-list">
-          <li>Real-time multiplayer gameplay</li>
-          <li>Multiple bingo card patterns</li>
-          <li>Chat with other players</li>
-          <li>Win real prizes</li>
-          <li>Track your progress and stats</li>
-        </ul>
-      </div>
+<div id="screen-lobby" class="screen">
+  <div class="welcome-box">
+    <h2>Welcome, <span id="user-name">Player</span>! 🎉</h2>
+    <p>Play Bingo and win big! Complete a line to win 2× your bet.</p>
+  </div>
+  <div class="info-row">
+    <div class="info-card"><div class="val" id="lobby-balance">0.00</div><div class="lbl">Balance (ETB)</div></div>
+    <div class="info-card"><div class="val">2×</div><div class="lbl">Win Multiplier</div></div>
+    <div class="info-card"><div class="val">BINGO</div><div class="lbl">Win Condition</div></div>
+  </div>
+  <div class="bet-section">
+    <h3>Select Bet Amount (ETB)</h3>
+    <div class="bet-options">
+      <button class="bet-btn" data-bet="5">5</button>
+      <button class="bet-btn" data-bet="10">10</button>
+      <button class="bet-btn" data-bet="20">20</button>
+      <button class="bet-btn" data-bet="50">50</button>
+      <button class="bet-btn" data-bet="100">100</button>
+      <button class="bet-btn" data-bet="200">200</button>
     </div>
+    <div class="custom-bet">
+      <input type="number" id="custom-bet" placeholder="Custom amount..." min="1" />
+    </div>
+  </div>
+  <button class="start-btn" id="start-btn" onclick="startGame()">🎮 Start Playing</button>
+  <p style="color:var(--sub);font-size:12px;text-align:center;">Win = 2× your bet. Numbers auto-mark on your card.</p>
+</div>
 
-    <footer>
-      <p>© 2025 Jute Bingo</p>
-    </footer>
+<div id="screen-game" class="screen">
+  <div class="game-header">
+    <div>
+      <div style="font-size:11px;color:var(--sub);">POT</div>
+      <div class="pot" id="pot-display">0.00 ETB</div>
+    </div>
+    <label class="automark-toggle"><input type="checkbox" id="automark" checked> Auto-mark</label>
+    <div class="timer-bar">
+      <div class="timer-circle" id="timer">3</div>
+    </div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:100%"></div></div>
+  <div class="bingo-header">
+    <div class="bingo-letter">B</div>
+    <div class="bingo-letter">I</div>
+    <div class="bingo-letter">N</div>
+    <div class="bingo-letter">G</div>
+    <div class="bingo-letter">O</div>
+  </div>
+  <div class="bingo-card" id="bingo-card"></div>
+  <div class="called-section">
+    <h4>Called Numbers</h4>
+    <div class="current-call" id="current-call">—</div>
+    <div class="recent-calls" id="recent-calls"></div>
+  </div>
+  <div class="game-controls">
+    <button class="claim-btn" id="claim-btn" onclick="claimWin()" disabled>🎉 Claim BINGO!</button>
+    <button class="quit-btn" onclick="quitGame()">✕ Quit</button>
+  </div>
+</div>
 
-    <script>
-      // Initialize Telegram WebApp
-      const telegramWebApp = window.Telegram.WebApp;
-      telegramWebApp.expand();
-      telegramWebApp.ready();
+<div id="screen-win" class="screen">
+  <div class="win-box">
+    <div class="win-emoji">🏆</div>
+    <h2>BINGO!</h2>
+    <div class="win-prize" id="win-prize">+0 ETB</div>
+    <p id="win-balance"></p>
+    <button class="play-again-btn" onclick="goToLobby()">🎮 Play Again</button>
+  </div>
+</div>
 
-      // Set theme
-      document.body.style.backgroundColor =
-        telegramWebApp.themeParams.bg_color || "#17212b";
-      document.body.style.color =
-        telegramWebApp.themeParams.text_color || "#ffffff";
+<div class="toast" id="toast"></div>
 
-      // Handle start button click
-      document
-        .getElementById("startButton")
-        .addEventListener("click", function () {
-          telegramWebApp.sendData(JSON.stringify({
-            action: 'start_game',
-            timestamp: new Date().toISOString()
-          }));
-          telegramWebApp.close();
-        });
+<script>
+const tg = window.Telegram.WebApp;
+tg.expand();
+tg.ready();
 
-      // Add back button event if needed
-      telegramWebApp.BackButton.onClick(function () {
-        // Handle back button press
-        if (window.history.length > 1) {
-          window.history.back();
-        } else {
-          telegramWebApp.close();
-        }
-      });
+const BASE = window.location.origin + '/api';
+let telegramId = null;
+let userInfo = null;
+let currentGame = null;
+let callTimer = null;
+let callIndex = 0;
+let markedNumbers = new Set();
+let calledNumbers = [];
+let selectedBet = 10;
 
-      // Handle main button if needed
-      telegramWebApp.MainButton.setText("PLAY NOW");
-      telegramWebApp.MainButton.onClick(function () {
-        telegramWebApp.sendData(JSON.stringify({
-          action: 'start_game',
-          timestamp: new Date().toISOString()
-        }));
-        telegramWebApp.close();
-      });
-      telegramWebApp.MainButton.show();
-    </script>
-  </body>
+// Get telegramId from URL
+const params = new URLSearchParams(window.location.search);
+telegramId = params.get('tgUserId') || (tg.initDataUnsafe?.user?.id?.toString());
+
+function toast(msg, err = false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast' + (err ? ' err' : '') + ' show';
+  setTimeout(() => el.className = 'toast', 2800);
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function fmt(n) { return parseFloat(n).toFixed(2); }
+
+function updateHeaderBalance(bal) {
+  document.getElementById('balance-val').textContent = fmt(bal);
+  document.getElementById('header-balance').style.display = 'block';
+}
+
+async function loadUser() {
+  try {
+    if (!telegramId) {
+      toast('Could not identify your Telegram account. Please open from the bot.', true);
+      return;
+    }
+    const r = await fetch(`${BASE}/game-api/user-info?telegramId=${telegramId}`);
+    const d = await r.json();
+    if (!d.success) { toast(d.message, true); showScreen('screen-lobby'); return; }
+    userInfo = d.user;
+    document.getElementById('user-name').textContent = userInfo.username || userInfo.first_name || 'Player';
+    document.getElementById('lobby-balance').textContent = fmt(userInfo.balance);
+    updateHeaderBalance(userInfo.balance);
+    showScreen('screen-lobby');
+  } catch (e) {
+    toast('Connection error. Please try again.', true);
+    showScreen('screen-lobby');
+  }
+}
+
+// Bet selection
+document.querySelectorAll('.bet-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.bet-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedBet = parseFloat(btn.dataset.bet);
+    document.getElementById('custom-bet').value = '';
+  });
+});
+document.getElementById('custom-bet').addEventListener('input', (e) => {
+  document.querySelectorAll('.bet-btn').forEach(b => b.classList.remove('selected'));
+  selectedBet = parseFloat(e.target.value) || 0;
+});
+// Default select 10
+document.querySelector('.bet-btn[data-bet="10"]').classList.add('selected');
+
+function getLetter(n) {
+  if (n <= 15) return 'B';
+  if (n <= 30) return 'I';
+  if (n <= 45) return 'N';
+  if (n <= 60) return 'G';
+  return 'O';
+}
+
+function renderCard(grid) {
+  const container = document.getElementById('bingo-card');
+  container.innerHTML = '';
+  for (let row = 0; row < 5; row++) {
+    for (let col = 0; col < 5; col++) {
+      const n = grid[row][col];
+      const cell = document.createElement('div');
+      cell.className = 'cell' + (n === 0 ? ' free marked' : '');
+      cell.textContent = n === 0 ? 'FREE' : n;
+      cell.dataset.num = n;
+      cell.dataset.row = row;
+      cell.dataset.col = col;
+      if (n !== 0) {
+        cell.addEventListener('click', () => toggleMark(n, cell));
+      }
+      container.appendChild(cell);
+    }
+  }
+}
+
+function toggleMark(n, cell) {
+  if (markedNumbers.has(n)) {
+    markedNumbers.delete(n);
+    cell.classList.remove('marked');
+  } else {
+    markedNumbers.add(n);
+    cell.classList.add('marked');
+  }
+  checkForBingo();
+}
+
+function markNumber(n) {
+  markedNumbers.add(n);
+  const cells = document.querySelectorAll(`[data-num="${n}"]`);
+  cells.forEach(c => c.classList.add('marked', 'called'));
+}
+
+function highlightCalled(n) {
+  const cells = document.querySelectorAll(`[data-num="${n}"]`);
+  cells.forEach(c => c.classList.add('called'));
+}
+
+function checkForBingo() {
+  if (!currentGame) return false;
+  const grid = currentGame.card;
+  const s = new Set([...markedNumbers, 0]);
+  const lines = [];
+  for (let r = 0; r < 5; r++) lines.push(grid[r]);
+  for (let c = 0; c < 5; c++) lines.push(grid.map(row => row[c]));
+  lines.push([0,1,2,3,4].map(i => grid[i][i]));
+  lines.push([0,1,2,3,4].map(i => grid[i][4-i]));
+  const won = lines.some(line => line.every(n => s.has(n)));
+  document.getElementById('claim-btn').disabled = !won;
+  return won;
+}
+
+function updateCurrentCall(n) {
+  const letter = getLetter(n);
+  document.getElementById('current-call').innerHTML = `<span class="call-letter">${letter}</span>${n}`;
+  const rc = document.getElementById('recent-calls');
+  const chip = document.createElement('div');
+  chip.className = 'rcall';
+  chip.textContent = `${letter}${n}`;
+  rc.prepend(chip);
+  [...rc.children].forEach((c, i) => { if (i > 0) c.classList.add('old'); });
+  if (rc.children.length > 20) rc.removeChild(rc.lastChild);
+}
+
+function startCallTimer() {
+  const INTERVAL = 3000;
+  let elapsed = 0;
+  const fill = document.getElementById('progress-fill');
+  const timerEl = document.getElementById('timer');
+
+  clearInterval(callTimer);
+  callTimer = setInterval(() => {
+    elapsed += 100;
+    const pct = Math.max(0, 100 - (elapsed / INTERVAL) * 100);
+    fill.style.width = pct + '%';
+    timerEl.textContent = Math.ceil((INTERVAL - elapsed) / 1000);
+
+    if (elapsed >= INTERVAL) {
+      elapsed = 0;
+      fill.style.transition = 'none';
+      fill.style.width = '100%';
+      setTimeout(() => { fill.style.transition = 'width 1s linear'; }, 10);
+      callNext();
+    }
+  }, 100);
+}
+
+function callNext() {
+  if (!currentGame || callIndex >= currentGame.callSequence.length) return;
+  const n = currentGame.callSequence[callIndex++];
+  calledNumbers.push(n);
+  updateCurrentCall(n);
+  highlightCalled(n);
+  if (document.getElementById('automark').checked) {
+    // Auto-mark if number is on card
+    const onCard = currentGame.card.flat().includes(n);
+    if (onCard) markNumber(n);
+  }
+  checkForBingo();
+}
+
+async function startGame() {
+  const bet = selectedBet;
+  if (!bet || bet <= 0) return toast('Select a bet amount', true);
+  if (!userInfo) return toast('User not loaded', true);
+  if (parseFloat(userInfo.balance) < bet) return toast(`Insufficient balance (${fmt(userInfo.balance)} ETB)`, true);
+
+  const btn = document.getElementById('start-btn');
+  btn.disabled = true;
+  btn.textContent = 'Starting...';
+
+  try {
+    const r = await fetch(`${BASE}/game-api/start-game`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ telegramId, betAmount: bet })
+    });
+    const d = await r.json();
+    if (!d.success) { toast(d.message, true); btn.disabled = false; btn.textContent = '🎮 Start Playing'; return; }
+
+    currentGame = d;
+    markedNumbers = new Set([0]);
+    calledNumbers = [];
+    callIndex = 0;
+
+    document.getElementById('pot-display').textContent = fmt(bet * 2) + ' ETB';
+    document.getElementById('recent-calls').innerHTML = '';
+    document.getElementById('current-call').innerHTML = '—';
+    document.getElementById('claim-btn').disabled = true;
+    userInfo.balance = d.newBalance;
+    document.getElementById('lobby-balance').textContent = fmt(d.newBalance);
+    updateHeaderBalance(d.newBalance);
+
+    renderCard(currentGame.card);
+    showScreen('screen-game');
+    startCallTimer();
+    setTimeout(callNext, 1500);
+  } catch (e) {
+    toast('Connection error', true);
+  }
+  btn.disabled = false;
+  btn.textContent = '🎮 Start Playing';
+}
+
+async function claimWin() {
+  if (!currentGame) return;
+  const btn = document.getElementById('claim-btn');
+  btn.disabled = true;
+  btn.textContent = 'Checking...';
+  try {
+    const r = await fetch(`${BASE}/game-api/claim-win`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gameId: currentGame.gameId, markedNumbers: [...markedNumbers] })
+    });
+    const d = await r.json();
+    if (!d.success) { toast(d.message, true); btn.disabled = false; btn.textContent = '🎉 Claim BINGO!'; return; }
+    clearInterval(callTimer);
+    userInfo.balance = d.newBalance;
+    document.getElementById('win-prize').textContent = '+' + fmt(d.prize) + ' ETB';
+    document.getElementById('win-balance').textContent = 'New balance: ' + fmt(d.newBalance) + ' ETB';
+    updateHeaderBalance(d.newBalance);
+    showScreen('screen-win');
+    tg.HapticFeedback?.notificationOccurred('success');
+  } catch (e) {
+    toast('Connection error', true);
+    btn.disabled = false;
+    btn.textContent = '🎉 Claim BINGO!';
+  }
+}
+
+function quitGame() {
+  if (!confirm('Quit the game? Your bet is not refunded.')) return;
+  clearInterval(callTimer);
+  currentGame = null;
+  goToLobby();
+}
+
+function goToLobby() {
+  clearInterval(callTimer);
+  currentGame = null;
+  document.getElementById('lobby-balance').textContent = fmt(userInfo?.balance || 0);
+  showScreen('screen-lobby');
+}
+
+// Init
+loadUser();
+</script>
+</body>
 </html>

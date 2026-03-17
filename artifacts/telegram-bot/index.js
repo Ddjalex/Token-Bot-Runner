@@ -110,6 +110,7 @@ const db = require("./config/db");
 // Import routes
 const indexRoutes = require("./routes/index");
 const adminRoutes = require("./routes/adminRoutes");
+const gameApiRoutes = require("./routes/gameApiRoutes");
 
 // Serve admin panel HTML
 const path = require("path");
@@ -122,6 +123,7 @@ app.use("/api", indexRoutes);
 app.use("/api/telegram", telegramRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/game-api", gameApiRoutes);
 
 // Get user data from database by Telegram ID
 const getUserByTelegramId = async (telegramId) => {
